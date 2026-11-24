@@ -51,13 +51,13 @@ pub(crate) fn pending_update_visible(app: &AppContext) -> bool {
     )
 }
 
-const REPO_API_URL: &str = "https://api.github.com/repos/Heartcoolman/warp-cn/releases/latest";
-pub(crate) const REPO_RELEASES_URL: &str = "https://github.com/Heartcoolman/warp-cn/releases";
+const REPO_API_URL: &str = "https://api.github.com/repos/smirnovrss-create/warp-ru/releases/latest";
+pub(crate) const REPO_RELEASES_URL: &str = "https://github.com/smirnovrss-create/warp-ru/releases";
 const REPO_TAGS_API: &str =
-    "https://api.github.com/repos/Heartcoolman/warp-cn/git/matching-refs/tags/";
-const REPO_GIT_TAGS_API: &str = "https://api.github.com/repos/Heartcoolman/warp-cn/git/tags/";
+    "https://api.github.com/repos/smirnovrss-create/warp-ru/git/matching-refs/tags/";
+const REPO_GIT_TAGS_API: &str = "https://api.github.com/repos/smirnovrss-create/warp-ru/git/tags/";
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
-const USER_AGENT: &str = "warp-cn-update-check/0.1";
+const USER_AGENT: &str = "warp-ru-update-check/0.1";
 const ACCEPT_HEADER: &str = "application/vnd.github+json";
 /// Cache lifetime for SHA→tag resolution. SHA→tag is stable unless the user
 /// retags the same commit; 24h re-validation is the right balance for honoring

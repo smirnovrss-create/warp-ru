@@ -65,6 +65,7 @@ settings-features-wd-home-dir = Home directory
 settings-features-wd-previous-session = Previous session's directory
 settings-features-wd-custom-dir = Custom directory
 settings-features-language = Language
+settings-features-language-ru = Русский
 settings-features-language-zh = 简体中文
 settings-features-language-en = English
 settings-features-language-system = Follow System

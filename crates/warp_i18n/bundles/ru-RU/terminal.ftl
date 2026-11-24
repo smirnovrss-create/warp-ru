@@ -1,0 +1,155 @@
+# Terminal / Block UI strings.
+# Keys MUST start with `terminal-`.
+
+terminal-filter-placeholder = Фильтр вывода блоков
+terminal-context-lines-tooltip = Показывать строки контекста вокруг совпадений
+terminal-regex-tooltip = Переключить regex
+terminal-case-sensitive-tooltip = Учитывать регистр
+terminal-invert-filter-tooltip = Инвертировать фильтр
+terminal-type-search-phrase = Введите искомую фразу.
+terminal-press-escape = Нажмите escape для выхода
+terminal-tag-agent = Привлечь агента для помощи
+terminal-save-as-workflow = Сохранить как воркфлоу
+terminal-workflow-secrets-warning = Блоки, содержащие секреты, нельзя сохранить.
+terminal-conversation-restored = Беседа восстановлена
+terminal-previous-session = Предыдущая сессия
+terminal-copy = Копировать
+terminal-cut = Вырезать
+terminal-paste = Вставить
+terminal-select-all = Выделить все
+terminal-share-block = Поделиться блоком
+terminal-copy-url = Копировать URL
+terminal-copy-path = Копировать путь
+terminal-show-in-finder = Показать в Finder
+terminal-show-containing-folder = Показать папку
+terminal-open-in-warp = Открыть в Warp
+terminal-open-in-editor = Открыть в редакторе
+terminal-reveal-secret = Показать секрет
+terminal-hide-secret = Скрыть секрет
+terminal-copy-secret = Копировать секрет
+terminal-insert-into-input = Вставить в ввод
+terminal-copy-command = Копировать команду
+terminal-copy-commands = Копировать команды
+terminal-copy-output = Копировать вывод
+terminal-copy-filtered-output = Копировать отфильтрованный вывод
+terminal-copy-prompt = Копировать промпт
+terminal-copy-right-prompt = Копировать правый промпт
+terminal-copy-working-directory = Копировать рабочий каталог
+terminal-copy-git-branch = Копировать ветку git
+terminal-copy-output-markdown = Копировать вывод как Markdown
+terminal-copy-conversation-text = Копировать текст беседы
+terminal-save-as-prompt = Сохранить как промпт
+terminal-ask-warp-ai = Спросить Warp AI
+terminal-command-search = Поиск команд
+terminal-ai-command-search = AI-поиск команд
+terminal-find-within-block = Найти в блоке
+terminal-find-within-blocks = Найти в блоках
+terminal-toggle-block-filter = Фильтр блоков
+terminal-toggle-bookmark = Закладка
+terminal-scroll-top-block = К началу блока
+terminal-scroll-top-blocks = К началу блоков
+terminal-scroll-bottom-block = К концу блока
+terminal-scroll-bottom-blocks = К концу блоков
+terminal-share = Поделиться...
+terminal-share-block-menu = Поделиться блоком...
+terminal-fork-last-query = Ответвить от последнего запроса
+terminal-fork-query = Ответвить от "{ $query }"
+terminal-fork-from-here = Ответвить отсюда (только для разработки)
+terminal-rewind-before-here = Отмотать до этого места
+terminal-split-pane-right = Разделить панель вправо
+terminal-split-pane-left = Разделить панель влево
+terminal-split-pane-down = Разделить панель вниз
+terminal-split-pane-up = Разделить панель вверх
+terminal-close-pane = Закрыть панель
+terminal-edit-cli-agent-toolbelt = Изменить набор инструментов CLI-агента
+terminal-edit-agent-toolbelt = Изменить набор инструментов агента
+terminal-edit-prompt = Изменить промпт
+terminal-hide-input-hint = Скрыть подсказку ввода
+terminal-show-input-hint = Показать подсказку ввода
+terminal-share-session = Поделиться сессией...
+terminal-stop-sharing = Остановить общий доступ
+terminal-copy-session-sharing-link = Копировать ссылку на сессию
+terminal-copy-debugging-link = Копировать ссылку отладки
+terminal-copy-conversation-id = Копировать ID беседы
+terminal-copy-debugging-id = Копировать ID отладки
+terminal-for-terminal = для терминала
+terminal-loading-session = Загрузка сессии...
+
+# Link tooltips (rich content + grid links)
+terminal-link-open-folder = Открыть папку
+terminal-link-open-file = Открыть файл
+terminal-link-open-link = Открыть ссылку
+
+# Zero state / SSH / shared session / init env / block onboarding
+terminal-zero-new-session = Новая сессия терминала
+terminal-zero-dont-show-again = Больше не показывать
+terminal-ssh-dont-ask-again = Больше не спрашивать
+# SSH remote-server failed banner
+terminal-ssh-failed-banner-title = Не удалось подключиться к расширению Warp SSH
+terminal-ssh-failed-banner-body = Хотя расширенные функции, такие как просмотр файлов и проверка кода, сейчас недоступны, остальные возможности Warp полностью доступны.
+terminal-shared-snapshot-title = Вы просматриваете снимок
+terminal-shared-snapshot-desc = Эта общая беседа показывает состояние на момент открытия. Если агент все еще работает, обновите страницу, чтобы увидеть последние изменения.
+terminal-init-env-mode-prompt = Выберите способ настройки окружения
+terminal-init-env-suggested = Рекомендуемый
+terminal-thinking = Думаю...
+terminal-onboarding-welcome = Добро пожаловать в Warp!
+terminal-onboarding-ai-examples-prefix = Вот несколько примеров того, как использовать возможности AI в вашем терминале с помощью
+terminal-onboarding-agent-mode = Режим агента
+terminal-onboarding-snake-title = Создать игру "Змейка" на Python с нуля
+terminal-onboarding-snake-desc = Попросите режим агента провести вас через создание игры "Змейка" от начала до конца
+terminal-onboarding-git-history-title = Изучить историю git в { $repo }
+terminal-onboarding-git-history-desc = Совместно с режимом агента разберитесь в недавних изменениях репозитория git
+terminal-onboarding-matrix-title = Создать кастомную тему в стиле Matrix
+terminal-onboarding-matrix-desc = Сделайте так, чтобы ваш терминал выглядел, будто вы попали в Matrix
+terminal-onboarding-other-title = Что-то другое?
+terminal-onboarding-other-desc = Работайте в паре с агентом над другой задачей
+terminal-onboarding-other-prompt = С чем вы можете мне помочь?
+
+# CLI agent plugin instructions
+terminal-plugin-install-warp-plugin = Установить плагин Warp
+terminal-plugin-install-latest-version = Установить последнюю версию плагина
+terminal-plugin-run-following-commands = Выполните следующие команды.
+terminal-plugin-claude-install-title = Установка плагина Warp для Claude Code
+terminal-plugin-claude-install-subtitle = Убедитесь, что на вашей машине установлен jq. Затем выполните эти команды.
+terminal-plugin-claude-add-marketplace = Добавить репозиторий маркетплейса плагинов Warp
+terminal-plugin-claude-restart-activate = Перезапустите Claude Code, чтобы активировать плагин.
+terminal-plugin-claude-known-issues = Есть известные проблемы с системой плагинов Claude Code. Если после шага 1 плагин не найден, попробуйте вручную добавить запись "extraKnownMarketplaces" в ~/.claude/settings.json.
+terminal-plugin-claude-update-title = Обновление плагина Warp для Claude Code
+terminal-plugin-claude-remove-marketplace = Удалить существующий маркетплейс (если он есть)
+terminal-plugin-claude-readd-marketplace = Повторно добавить маркетплейс
+terminal-plugin-claude-restart-activate-update = Перезапустите Claude Code, чтобы активировать обновление.
+terminal-plugin-install-warp-extension = Установить расширение Warp
+terminal-plugin-update-warp-extension = Обновить расширение Warp
+terminal-plugin-gemini-install-title = Установка плагина Warp для Gemini CLI
+terminal-plugin-gemini-command-then-restart = Выполните следующую команду, затем перезапустите Gemini CLI.
+terminal-plugin-gemini-restart-activate = Перезапустите Gemini CLI, чтобы активировать плагин.
+terminal-plugin-gemini-update-title = Обновление плагина Warp для Gemini CLI
+terminal-plugin-gemini-restart-activate-update = Перезапустите Gemini CLI, чтобы активировать обновление.
+terminal-plugin-opencode-install-title = Установка плагина Warp для OpenCode
+terminal-plugin-opencode-install-subtitle = Добавьте плагин Warp в конфигурацию OpenCode, затем перезапустите OpenCode.
+terminal-plugin-opencode-open-config = Откройте или создайте файл opencode.json. Он может находиться в корне вашего проекта или по глобальному пути конфигурации:
+terminal-plugin-opencode-add-plugin = Добавьте "@warp-dot-dev/opencode-warp" в массив "plugin" в JSON-объекте верхнего уровня:
+terminal-plugin-opencode-restart-activate = Перезапустите OpenCode, чтобы активировать плагин.
+terminal-plugin-opencode-update-title = Обновить плагин Warp для OpenCode
+terminal-plugin-opencode-update-subtitle = Закрепите последнюю версию плагина в вашем opencode.json. OpenCode кэширует плагины по версии в спецификации, поэтому смена закрепления заставит его повторно загрузить плагин при перезапуске.
+terminal-plugin-opencode-replace-plugin = Замените существующую запись "@warp-dot-dev/opencode-warp" в массиве "plugin" на явную версию:
+terminal-plugin-opencode-restart-update = Перезапустите OpenCode, чтобы загрузить обновленный плагин.
+
+# Terminal input
+terminal-no-results = Нет результатов
+terminal-billed-to-api = Оплата через API
+terminal-or-separator = { " или " }
+
+# Input suggestions mode placeholder texts (terminal/input.rs InputSuggestionsMode)
+terminal-input-placeholder-search-queries = Поиск запросов
+terminal-input-placeholder-search-queries-rewind = Поиск запросов для отката
+terminal-input-placeholder-search-conversations = Поиск бесед
+terminal-input-placeholder-search-skills = Поиск навыков
+terminal-input-placeholder-search-models = Поиск моделей
+terminal-input-placeholder-search-profiles = Поиск профилей
+terminal-input-placeholder-search-commands = Поиск команд
+terminal-input-placeholder-search-prompts = Поиск промптов
+terminal-input-placeholder-search-indexed-repos = Поиск проиндексированных репозиториев
+terminal-input-placeholder-search-plans = Поиск планов
+terminal-fork = Форк
+terminal-copy-share-link = Копировать ссылку

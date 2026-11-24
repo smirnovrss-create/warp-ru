@@ -27,6 +27,15 @@ fn render_zh_resolves_known_key() {
 }
 
 #[test]
+fn render_ru_resolves_known_key() {
+    ensure_init();
+    let _g = lock().lock();
+    set_locale(Locale::RuRu);
+    let s = render("ui-button-cancel", None);
+    assert_eq!(s, "Отмена", "key=ui-button-cancel ru-RU");
+}
+
+#[test]
 fn render_en_resolves_known_key() {
     ensure_init();
     let _g = lock().lock();
@@ -62,6 +71,8 @@ fn missing_key_returns_placeholder() {
 fn locale_switch_changes_render() {
     ensure_init();
     let _g = lock().lock();
+    set_locale(Locale::RuRu);
+    assert_eq!(render("ui-button-cancel", None), "Отмена");
     set_locale(Locale::ZhCn);
     assert_eq!(render("ui-button-cancel", None), "取消");
     set_locale(Locale::En);
@@ -98,6 +109,28 @@ fn plural_selector_zh_one_vs_other() {
     );
     assert_eq!(one, "关闭 1 个标签页");
     assert_eq!(many, "关闭 3 个标签页");
+}
+
+#[test]
+fn plural_selector_ru_one_few_many() {
+    ensure_init();
+    let _g = lock().lock();
+    set_locale(Locale::RuRu);
+    let one = render(
+        "tabs-close-confirm",
+        Some(&args_from([("n", FluentValue::from(1))])),
+    );
+    let few = render(
+        "tabs-close-confirm",
+        Some(&args_from([("n", FluentValue::from(3))])),
+    );
+    let many = render(
+        "tabs-close-confirm",
+        Some(&args_from([("n", FluentValue::from(5))])),
+    );
+    assert_eq!(one, "Закрыть 1 вкладку");
+    assert_eq!(few, "Закрыть 3 вкладки");
+    assert_eq!(many, "Закрыть 5 вкладок");
 }
 
 #[test]

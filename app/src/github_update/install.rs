@@ -51,7 +51,7 @@ use warp_core::paths;
 use super::InstallableRelease;
 
 const REQUEST_TIMEOUT_SECS: u64 = 300; // tarballs ~ 50-150 MB; allow slow links
-const USER_AGENT: &str = "warp-cn-update-install/0.1";
+const USER_AGENT: &str = "warp-ru-update-install/0.1";
 
 pub(super) async fn run_install(
     target: InstallableRelease,

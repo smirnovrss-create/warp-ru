@@ -7,12 +7,13 @@
 use proptest::prelude::*;
 use warp_i18n::locale::{LanguagePreference, Locale, resolve_locale};
 
-/// (h) resolve_locale is deterministic: same input -> same output in {En, ZhCn}.
+/// (h) resolve_locale is deterministic: same input -> same output in {En, ZhCn, RuRu}.
 proptest! {
     #[test]
     fn resolve_locale_is_deterministic(
         pref in prop_oneof![
             Just(None),
+            Just(Some(LanguagePreference::Ru)),
             Just(Some(LanguagePreference::Zh)),
             Just(Some(LanguagePreference::En)),
             Just(Some(LanguagePreference::System)),
@@ -26,7 +27,7 @@ proptest! {
         for r in &results {
             prop_assert_eq!(*r, first);
         }
-        prop_assert!(matches!(first, Locale::ZhCn | Locale::En));
+        prop_assert!(matches!(first, Locale::RuRu | Locale::ZhCn | Locale::En));
     }
 }
 
@@ -36,6 +37,7 @@ proptest! {
     fn resolve_locale_snapshot_consistent(
         pref in prop_oneof![
             Just(None),
+            Just(Some(LanguagePreference::Ru)),
             Just(Some(LanguagePreference::Zh)),
             Just(Some(LanguagePreference::En)),
             Just(Some(LanguagePreference::System)),
@@ -43,7 +45,7 @@ proptest! {
         sys_tag in prop::option::of("[a-zA-Z0-9_-]{0,20}"),
     ) {
         let result = resolve_locale(pref, sys_tag.as_deref());
-        prop_assert!(matches!(result, Locale::ZhCn | Locale::En));
+        prop_assert!(matches!(result, Locale::RuRu | Locale::ZhCn | Locale::En));
     }
 }
 
@@ -52,6 +54,9 @@ proptest! {
     #[test]
     fn parse_bcp47_normalization_consistent(
         tag in prop_oneof![
+            Just("ru".to_string()),
+            Just("ru-RU".to_string()),
+            Just("ru_RU".to_string()),
             Just("zh".to_string()),
             Just("zh-CN".to_string()),
             Just("zh_Hans_CN".to_string()),
@@ -63,12 +68,15 @@ proptest! {
         ],
     ) {
         let result = Locale::parse_bcp47(&tag);
-        let lower = tag.to_ascii_lowercase();
-        if lower.trim().is_empty() {
+        let trimmed = tag.trim();
+        let primary = trimmed.split(['-', '_']).next().unwrap_or(trimmed).to_ascii_lowercase();
+        if trimmed.is_empty() {
             prop_assert!(result.is_none());
-        } else if lower.trim().starts_with("zh") {
+        } else if primary == "ru" {
+            prop_assert_eq!(result, Some(Locale::RuRu));
+        } else if primary == "zh" {
             prop_assert_eq!(result, Some(Locale::ZhCn));
-        } else if lower.trim().starts_with("en") {
+        } else if primary == "en" {
             prop_assert_eq!(result, Some(Locale::En));
         } else {
             prop_assert!(result.is_none());

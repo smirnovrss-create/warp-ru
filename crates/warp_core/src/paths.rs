@@ -373,6 +373,7 @@ fn project_dirs_for_app_id(
             let base_app_name = match app_id.application_name() {
                 "Warp" => "Warp-Terminal".to_owned(),
                 "WarpCn" => "Warp-Cn".to_owned(),
+                "WarpRu" => "Warp-Ru".to_owned(),
                 other if other.starts_with("Warp") => other.replace("Warp", "Warp-Terminal-"),
                 _ => app_id.application_name().to_owned(),
             };

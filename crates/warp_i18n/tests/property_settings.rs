@@ -12,6 +12,7 @@ proptest! {
     #[test]
     fn language_preference_serde_roundtrip(
         pref in prop_oneof![
+            Just(LanguagePreference::Ru),
             Just(LanguagePreference::Zh),
             Just(LanguagePreference::En),
             Just(LanguagePreference::System),
@@ -39,6 +40,7 @@ proptest! {
     fn settings_language_field_roundtrip(
         lang in prop_oneof![
             Just(None),
+            Just(Some(LanguagePreference::Ru)),
             Just(Some(LanguagePreference::Zh)),
             Just(Some(LanguagePreference::En)),
             Just(Some(LanguagePreference::System)),

@@ -23,7 +23,7 @@ proptest! {
             "ui-button-discard", "ui-button-close", "ui-button-confirm",
             "ui-button-retry", "ui-button-default",
         ]),
-        locale in prop_oneof![Just(Locale::ZhCn), Just(Locale::En)],
+        locale in prop_oneof![Just(Locale::RuRu), Just(Locale::ZhCn), Just(Locale::En)],
     ) {
         let _g = lock().lock().unwrap();
         let _ = warp_i18n::init(locale);
@@ -40,7 +40,7 @@ proptest! {
     #[test]
     fn render_with_args_deterministic(
         n in 0u32..1000u32,
-        locale in prop_oneof![Just(Locale::ZhCn), Just(Locale::En)],
+        locale in prop_oneof![Just(Locale::RuRu), Just(Locale::ZhCn), Just(Locale::En)],
     ) {
         let _g = lock().lock().unwrap();
         let _ = warp_i18n::init(locale);
@@ -82,7 +82,7 @@ proptest! {
         key in prop::sample::select(&[
             "ui-button-ok", "ui-button-cancel", "ui-button-save",
         ]),
-        locale in prop_oneof![Just(Locale::ZhCn), Just(Locale::En)],
+        locale in prop_oneof![Just(Locale::RuRu), Just(Locale::ZhCn), Just(Locale::En)],
     ) {
         let _g = lock().lock().unwrap();
         let _ = warp_i18n::init(locale);

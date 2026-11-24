@@ -1,7 +1,7 @@
 //! UI language preference (D13).
 //!
-//! Disk shape: top-level TOML key `language = "zh-CN" | "en" | "system"`. Missing value
-//! is mapped to `Language::default() == Zh` per fork policy.
+//! Disk shape: top-level TOML key `language = "ru-RU" | "zh-CN" | "en" | "system"`. Missing value
+//! is mapped to `Language::default() == Ru` per fork policy.
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -24,6 +24,8 @@ use warpui::{AppContext, SingletonEntity};
 )]
 pub enum Language {
     #[default]
+    #[serde(rename = "ru-RU")]
+    Ru,
     #[serde(rename = "zh-CN")]
     Zh,
     #[serde(rename = "en")]
@@ -35,6 +37,7 @@ pub enum Language {
 impl Language {
     pub fn resolve_locale(self) -> warp_i18n::Locale {
         match self {
+            Language::Ru => warp_i18n::Locale::RuRu,
             Language::Zh => warp_i18n::Locale::ZhCn,
             Language::En => warp_i18n::Locale::En,
             Language::System => warp_i18n::detect_system_locale()
@@ -48,13 +51,13 @@ impl Language {
 define_settings_group!(LanguageSettings, settings: [
     language: LanguageSetting {
         type: Language,
-        default: Language::Zh,
+        default: Language::Ru,
         supported_platforms: SupportedPlatforms::ALL,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
         surface: settings::SettingSurfaces::GUI,
         private: false,
         toml_path: "language",
-        description: "UI language preference. \"zh-CN\" or \"en\" forces a locale; \"system\" follows the host OS.",
+        description: "UI language preference. \"ru-RU\", \"zh-CN\", or \"en\" forces a locale; \"system\" follows the host OS.",
     },
 ]);
 

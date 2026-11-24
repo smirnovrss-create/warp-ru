@@ -65,6 +65,7 @@ settings-features-wd-home-dir = 主目录
 settings-features-wd-previous-session = 上一个会话的目录
 settings-features-wd-custom-dir = 自定义目录
 settings-features-language = 语言
+settings-features-language-ru = Русский
 settings-features-language-zh = 简体中文
 settings-features-language-en = English
 settings-features-language-system = 跟随系统

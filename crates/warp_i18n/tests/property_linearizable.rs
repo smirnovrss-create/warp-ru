@@ -28,7 +28,11 @@ fn set_locale_lookup_linearizable_200_ops() {
         handles.push(thread::spawn(move || {
             use warp_i18n::Locale;
             for j in 0..OPS_PER_THREAD {
-                let locale = if (i + j) % 2 == 0 { Locale::ZhCn } else { Locale::En };
+                let locale = match (i + j) % 3 {
+                    0 => Locale::ZhCn,
+                    1 => Locale::En,
+                    _ => Locale::RuRu,
+                };
                 s.set(locale);
             }
         }));
@@ -83,6 +87,7 @@ impl TestState {
         let v: u8 = match l {
             warp_i18n::Locale::ZhCn => 0,
             warp_i18n::Locale::En => 1,
+            warp_i18n::Locale::RuRu => 2,
         };
         self.locale.store(v, Ordering::Release);
     }
@@ -95,6 +100,7 @@ impl TestState {
         let locale = self.current_snapshot();
         let l = match locale {
             0 => warp_i18n::Locale::ZhCn,
+            2 => warp_i18n::Locale::RuRu,
             _ => warp_i18n::Locale::En,
         };
         let _ = warp_i18n::init(l);
@@ -117,6 +123,7 @@ impl TestState {
         groups.into_iter().map(|((l, k), v)| {
             let loc = match l {
                 0 => warp_i18n::Locale::ZhCn,
+                2 => warp_i18n::Locale::RuRu,
                 _ => warp_i18n::Locale::En,
             };
             (loc, k, v)

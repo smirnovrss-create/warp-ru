@@ -53,9 +53,9 @@ pub struct Bundles {
 
 impl Bundles {
     pub fn load() -> Result<Self> {
-        let fallback = vec![Locale::ZhCn, Locale::En];
+        let fallback = vec![Locale::RuRu, Locale::En];
         let mut bundles = HashMap::new();
-        for locale in [Locale::ZhCn, Locale::En] {
+        for locale in [Locale::RuRu, Locale::ZhCn, Locale::En] {
             bundles.insert(locale, Arc::new(load_locale(locale)?));
         }
         Ok(Self { bundles, fallback })

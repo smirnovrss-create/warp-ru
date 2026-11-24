@@ -7,6 +7,8 @@ use unic_langid::{LanguageIdentifier, langid};
 /// Forks add new variants here and update the loader fallback chain in `loader.rs`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Locale {
+    #[serde(rename = "ru-RU")]
+    RuRu,
     #[serde(rename = "zh-CN")]
     ZhCn,
     #[serde(rename = "en")]
@@ -14,11 +16,12 @@ pub enum Locale {
 }
 
 impl Locale {
-    /// Default locale for this fork: simplified Chinese.
-    pub const DEFAULT: Self = Self::ZhCn;
+    /// Default locale for this fork: Russian.
+    pub const DEFAULT: Self = Self::RuRu;
 
     pub fn as_langid(&self) -> LanguageIdentifier {
         match self {
+            Self::RuRu => langid!("ru-RU"),
             Self::ZhCn => langid!("zh-CN"),
             Self::En => langid!("en"),
         }
@@ -26,6 +29,7 @@ impl Locale {
 
     pub fn as_bcp47(&self) -> &'static str {
         match self {
+            Self::RuRu => "ru-RU",
             Self::ZhCn => "zh-CN",
             Self::En => "en",
         }
@@ -34,7 +38,7 @@ impl Locale {
     /// Parse a BCP-47 tag into one of the supported locales.
     ///
     /// Normalisation rules: leading whitespace and trailing region/script subtags are tolerated;
-    /// any `zh*` tag maps to `ZhCn`; `en*` maps to `En`. Unknown tags return `None`.
+    /// any `ru*` tag maps to `RuRu`; `zh*` maps to `ZhCn`; `en*` maps to `En`. Unknown tags return `None`.
     pub fn parse_bcp47(tag: &str) -> Option<Self> {
         let trimmed = tag.trim();
         if trimmed.is_empty() {
@@ -42,6 +46,7 @@ impl Locale {
         }
         let primary = trimmed.split(['-', '_']).next().unwrap_or(trimmed);
         match primary.to_ascii_lowercase().as_str() {
+            "ru" => Some(Self::RuRu),
             "zh" => Some(Self::ZhCn),
             "en" => Some(Self::En),
             _ => None,
@@ -64,6 +69,8 @@ impl fmt::Display for Locale {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum LanguagePreference {
+    #[serde(rename = "ru-RU")]
+    Ru,
     #[serde(rename = "zh-CN")]
     Zh,
     #[serde(rename = "en")]
@@ -72,9 +79,9 @@ pub enum LanguagePreference {
 }
 
 impl Default for LanguagePreference {
-    /// Fork default: zh-CN, NOT system locale (D13).
+    /// Fork default: ru-RU, NOT system locale.
     fn default() -> Self {
-        Self::Zh
+        Self::Ru
     }
 }
 
@@ -84,6 +91,7 @@ impl Default for LanguagePreference {
 /// of system detection entirely (test paths, headless processes).
 pub fn resolve_locale(pref: Option<LanguagePreference>, system_tag: Option<&str>) -> Locale {
     match pref.unwrap_or_default() {
+        LanguagePreference::Ru => Locale::RuRu,
         LanguagePreference::Zh => Locale::ZhCn,
         LanguagePreference::En => Locale::En,
         LanguagePreference::System => system_tag
@@ -100,6 +108,13 @@ pub fn detect_system_locale() -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn parse_bcp47_handles_russian_variants() {
+        for tag in ["ru-RU", "ru_RU", "ru", "  ru-BY  "] {
+            assert_eq!(Locale::parse_bcp47(tag), Some(Locale::RuRu), "tag={tag}");
+        }
+    }
 
     #[test]
     fn parse_bcp47_handles_chinese_variants() {
@@ -125,6 +140,10 @@ mod tests {
     #[test]
     fn resolve_explicit_overrides_system() {
         assert_eq!(
+            resolve_locale(Some(LanguagePreference::Ru), Some("en-US")),
+            Locale::RuRu
+        );
+        assert_eq!(
             resolve_locale(Some(LanguagePreference::En), Some("zh-CN")),
             Locale::En
         );
@@ -147,8 +166,8 @@ mod tests {
     }
 
     #[test]
-    fn missing_preference_defaults_to_zh() {
-        assert_eq!(resolve_locale(None, Some("en-US")), Locale::ZhCn);
-        assert_eq!(resolve_locale(None, None), Locale::ZhCn);
+    fn missing_preference_defaults_to_ru() {
+        assert_eq!(resolve_locale(None, Some("en-US")), Locale::RuRu);
+        assert_eq!(resolve_locale(None, None), Locale::RuRu);
     }
 }

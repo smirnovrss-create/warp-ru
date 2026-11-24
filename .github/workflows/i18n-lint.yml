@@ -1,6 +1,14 @@
 name: i18n-lint
 
 on:
+  push:
+    branches:
+      - master
+    paths:
+      - "crates/warp_i18n/**"
+      - "xtask/**"
+      - "app/src/language_settings.rs"
+      - ".github/workflows/i18n-lint.yml"
   pull_request:
     paths:
       - "**/*.rs"
@@ -8,10 +16,6 @@ on:
       - "xtask/**"
       - "crates/warp_i18n/lint_allowlist.toml"
       - ".github/workflows/i18n-lint.yml"
-  # Master push trigger is intentionally disabled while the localize-client-zh-cn
-  # migration is in progress: 34 hard violations are still tracked work, see
-  # openspec/changes/localize-client-zh-cn/IMPLEMENTATION_STATUS.md. PRs still
-  # get hard-mode gating; restore the push trigger once the migration is done.
   workflow_dispatch:
 
 jobs:
@@ -30,11 +34,15 @@ jobs:
           workspaces: ". -> target"
           cache-on-failure: true
 
-      - name: Run i18n lint (hard mode)
-        run: cargo xtask check-i18n --mode hard
+      - name: Run warp_i18n unit & property tests
+        run: cargo test -p warp_i18n
 
-      - name: Verify bundle parity (en ↔ zh-CN)
+      - name: Verify bundle parity (en / zh-CN / ru-RU)
         run: cargo xtask check-i18n --check-parity
+
+      - name: Run i18n lint (hard mode)
+        continue-on-error: ${{ github.event_name != 'pull_request' }}
+        run: cargo xtask check-i18n --mode hard
 
       - name: Detect allowlist growth (Phase 5 freeze)
         if: github.event_name == 'pull_request'

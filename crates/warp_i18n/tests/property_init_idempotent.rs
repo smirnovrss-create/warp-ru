@@ -20,7 +20,7 @@ proptest! {
         calls in 1u32..20u32,
     ) {
         let _g = lock().lock().unwrap();
-        let _ = init(Locale::ZhCn);
+        let _ = init(Locale::RuRu);
         let ptr = global() as *const _;
         for _ in 0..calls {
             let _ = init(Locale::En);
@@ -34,7 +34,7 @@ proptest! {
 proptest! {
     #[test]
     fn set_locale_repeated_is_idempotent(
-        locale in prop_oneof![Just(Locale::ZhCn), Just(Locale::En)],
+        locale in prop_oneof![Just(Locale::RuRu), Just(Locale::ZhCn), Just(Locale::En)],
         calls in 1u32..10u32,
     ) {
         let _g = lock().lock().unwrap();
@@ -52,14 +52,14 @@ proptest! {
 proptest! {
     #[test]
     fn init_always_produces_valid_global(
-        initial in prop_oneof![Just(Locale::ZhCn), Just(Locale::En)],
-        secondary in prop_oneof![Just(Locale::ZhCn), Just(Locale::En)],
+        initial in prop_oneof![Just(Locale::RuRu), Just(Locale::ZhCn), Just(Locale::En)],
+        secondary in prop_oneof![Just(Locale::RuRu), Just(Locale::ZhCn), Just(Locale::En)],
     ) {
         let _g = lock().lock().unwrap();
         let _ = init(initial);
         let i18n = global();
         let loc = i18n.current();
-        prop_assert!(matches!(loc, Locale::ZhCn | Locale::En));
+        prop_assert!(matches!(loc, Locale::RuRu | Locale::ZhCn | Locale::En));
 
         let _ = init(secondary);
         let loc2 = current_locale();

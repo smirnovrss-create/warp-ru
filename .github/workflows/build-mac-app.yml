@@ -42,7 +42,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [aarch64, x86_64]
+        arch: [aarch64]
     # 用 GitHub 免费 macos-14（M1 4-core）。自托管 LaunchAgent 跑 create-dmg 时
     # AppleScript 控 Finder 必超时（无 Aqua GUI session），DMG 美化无法完成；
     # 美化要的话只能走 hosted runner 或 ./run.sh 前台模式（不稳）。
@@ -240,19 +240,18 @@ jobs:
       # 因此 ad-hoc 签名 .app 替换后 Gatekeeper 不会重新评估，更新对用户静默。
       # 见 app/src/github_update/install.rs。
       - name: Install rsign2 (minisign signer)
-        if: github.ref_type == 'tag'
+        if: github.ref_type == 'tag' && env.HAS_MINISIGN == 'true'
+        env:
+          HAS_MINISIGN: ${{ secrets.MINISIGN_SECRET_KEY != '' }}
         run: cargo install --quiet --locked rsign2
 
       - name: Sign tarball with minisign
-        if: github.ref_type == 'tag'
+        if: github.ref_type == 'tag' && env.HAS_MINISIGN == 'true'
         env:
+          HAS_MINISIGN: ${{ secrets.MINISIGN_SECRET_KEY != '' }}
           MINISIGN_SECRET_KEY: ${{ secrets.MINISIGN_SECRET_KEY }}
         run: |
           set -eu
-          if [ -z "${MINISIGN_SECRET_KEY:-}" ]; then
-            echo "::error::MINISIGN_SECRET_KEY secret is not set; run script/generate_update_keys.sh and add the secret key to repo secrets."
-            exit 1
-          fi
           TARBALL="${{ steps.bundle.outputs.tarball_path }}"
           if [ -z "$TARBALL" ] || [ ! -f "$TARBALL" ]; then
             echo "::error::bundle did not produce a tarball (tarball_path output empty)"
@@ -284,11 +283,15 @@ jobs:
               | jq -r --arg t "$TAG" '.[] | select(.tag_name == $t) | .id' \
               | head -1
           }
+          FILES=("$TARBALL" "$DMG")
+          if [ -f "${TARBALL}.minisig" ]; then
+            FILES+=("${TARBALL}.minisig")
+          fi
           # 按 release id 上传（draft 没有可用的 by-tag 端点，gh release upload 会 404）。
           upload_by_id() {
             rid=$1
             upload_url="https://uploads.github.com/repos/${{ github.repository }}/releases/${rid}/assets"
-            for f in "$TARBALL" "${TARBALL}.minisig" "$DMG"; do
+            for f in "${FILES[@]}"; do
               base=$(basename "$f")
               gh api "/repos/${{ github.repository }}/releases/${rid}" \
                 --jq ".assets[] | select(.name == \"$base\") | .id" \
@@ -311,7 +314,7 @@ jobs:
             # 不存在则建 **draft**：LTO 双架构还要跑很久，转正由
             # auto-attach-release 在资产齐了之后做。
             if gh release create "$TAG" \
-                 "$TARBALL" "${TARBALL}.minisig" "$DMG" \
+                 "${FILES[@]}" \
                  --title "$TAG" \
                  --draft \
                  --generate-notes 2> /tmp/gh.err; then

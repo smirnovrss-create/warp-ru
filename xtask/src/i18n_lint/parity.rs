@@ -13,8 +13,8 @@ pub struct Mismatch {
 
 #[derive(Debug)]
 pub enum MismatchKind {
-    MissingInZh,
-    MissingInEn,
+    MissingInLocale { locale: String },
+    MissingInEn { locale: String },
     /// Same message id defined more than once within a locale (across its
     /// `.ftl` files). `load_locale` merges every `<locale>/*.ftl` into one
     /// `FluentBundle`; `add_resource` rejects the duplicate, so
@@ -25,11 +25,11 @@ pub enum MismatchKind {
 impl fmt::Display for Mismatch {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.kind {
-            MismatchKind::MissingInZh => {
-                write!(f, "parity: {} key {:?} missing in zh-CN", self.bundle, self.key)
+            MismatchKind::MissingInLocale { locale } => {
+                write!(f, "parity: {} key {:?} missing in {locale}", self.bundle, self.key)
             }
-            MismatchKind::MissingInEn => {
-                write!(f, "parity: {} key {:?} missing in en", self.bundle, self.key)
+            MismatchKind::MissingInEn { locale } => {
+                write!(f, "parity: {} key {:?} in {locale} missing in en", self.bundle, self.key)
             }
             MismatchKind::Duplicate { locale, files } => write!(
                 f,
@@ -44,36 +44,42 @@ impl fmt::Display for Mismatch {
     }
 }
 
-/// Compare en/zh-CN bundles file-by-file and flag duplicate keys within each
+/// Compare en/zh-CN/ru-RU bundles file-by-file and flag duplicate keys within each
 /// locale. Returns the union of missing keys plus any duplicates.
 pub fn check(bundles_root: &Path) -> Result<Vec<Mismatch>> {
     let en = collect(&bundles_root.join("en"))?;
-    let zh = collect(&bundles_root.join("zh-CN"))?;
     let mut mismatches = Vec::new();
 
-    let names: BTreeSet<&String> = en.keys().chain(zh.keys()).collect();
-    for name in names {
-        let empty = BTreeSet::new();
-        let en_keys = en.get(name).unwrap_or(&empty);
-        let zh_keys = zh.get(name).unwrap_or(&empty);
-        for k in en_keys.difference(zh_keys) {
-            mismatches.push(Mismatch {
-                bundle: name.clone(),
-                kind: MismatchKind::MissingInZh,
-                key: k.clone(),
-            });
+    for locale in ["zh-CN", "ru-RU"] {
+        let loc_map = collect(&bundles_root.join(locale))?;
+        let names: BTreeSet<&String> = en.keys().chain(loc_map.keys()).collect();
+        for name in names {
+            let empty = BTreeSet::new();
+            let en_keys = en.get(name).unwrap_or(&empty);
+            let loc_keys = loc_map.get(name).unwrap_or(&empty);
+            for k in en_keys.difference(loc_keys) {
+                mismatches.push(Mismatch {
+                    bundle: name.clone(),
+                    kind: MismatchKind::MissingInLocale {
+                        locale: locale.to_string(),
+                    },
+                    key: k.clone(),
+                });
+            }
+            for k in loc_keys.difference(en_keys) {
+                mismatches.push(Mismatch {
+                    bundle: name.clone(),
+                    kind: MismatchKind::MissingInEn {
+                        locale: locale.to_string(),
+                    },
+                    key: k.clone(),
+                });
+            }
         }
-        for k in zh_keys.difference(en_keys) {
-            mismatches.push(Mismatch {
-                bundle: name.clone(),
-                kind: MismatchKind::MissingInEn,
-                key: k.clone(),
-            });
-        }
+        mismatches.extend(duplicates(&bundles_root.join(locale), locale)?);
     }
 
     mismatches.extend(duplicates(&bundles_root.join("en"), "en")?);
-    mismatches.extend(duplicates(&bundles_root.join("zh-CN"), "zh-CN")?);
     Ok(mismatches)
 }
 

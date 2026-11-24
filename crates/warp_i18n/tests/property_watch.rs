@@ -18,12 +18,12 @@ proptest! {
     #[test]
     fn watch_delivers_all_distinct_transitions(
         seq in prop::collection::vec(
-            prop_oneof![Just(Locale::En), Just(Locale::ZhCn)],
+            prop_oneof![Just(Locale::En), Just(Locale::ZhCn), Just(Locale::RuRu)],
             1..50,
         ),
     ) {
         let _g = lock().lock().unwrap();
-        let _ = init(Locale::ZhCn);
+        let _ = init(Locale::RuRu);
         let i18n = global();
 
         let distinct: Vec<Locale> = {
@@ -65,13 +65,13 @@ proptest! {
     #[test]
     fn multiple_receivers_consistent(
         seq in prop::collection::vec(
-            prop_oneof![Just(Locale::En), Just(Locale::ZhCn)],
+            prop_oneof![Just(Locale::En), Just(Locale::ZhCn), Just(Locale::RuRu)],
             5..30,
         ),
         num_receivers in 1usize..10usize,
     ) {
         let _g = lock().lock().unwrap();
-        let _ = init(Locale::ZhCn);
+        let _ = init(Locale::RuRu);
         let i18n = global();
 
         let mut receivers: Vec<_> = (0..num_receivers)

@@ -2728,6 +2728,10 @@ impl AppearanceSettingsPageView {
         dropdown.set_items(
             vec![
                 DropdownItem::new(
+                    warp_i18n::t!("settings-features-language-ru"),
+                    AppearancePageAction::SetLanguage(Language::Ru),
+                ),
+                DropdownItem::new(
                     warp_i18n::t!("settings-features-language-zh"),
                     AppearancePageAction::SetLanguage(Language::Zh),
                 ),

@@ -227,7 +227,7 @@ jobs:
 
       - name: Set up Sentry CLI
         if: ${{ needs.prepare_release.outputs.should_publish == 'true' }}
-        uses: matbour/setup-sentry-cli@3e938c54b3018bdd019973689ef984e033b0454b # v2.0.0
+        uses: matbour/setup-sentry-cli@ff4fff773f5e628fa214ebd19e46fb7289454ee2 # v3.0.0
         with:
           token: ${{ secrets.SENTRY_RELEASE_TOKEN }}
           organization: warpdotdev
@@ -331,7 +331,7 @@ jobs:
 
       - name: Set up Sentry CLI
         if: ${{ needs.prepare_release.outputs.should_publish == 'true' }}
-        uses: matbour/setup-sentry-cli@3e938c54b3018bdd019973689ef984e033b0454b # v2.0.0
+        uses: matbour/setup-sentry-cli@ff4fff773f5e628fa214ebd19e46fb7289454ee2 # v3.0.0
         with:
           token: ${{ secrets.SENTRY_RELEASE_TOKEN }}
           organization: warpdotdev
@@ -491,7 +491,7 @@ jobs:
 
       - name: Set up Sentry CLI
         if: ${{ needs.prepare_release.outputs.should_publish == 'true' }}
-        uses: matbour/setup-sentry-cli@3e938c54b3018bdd019973689ef984e033b0454b # v2.0.0
+        uses: matbour/setup-sentry-cli@ff4fff773f5e628fa214ebd19e46fb7289454ee2 # v3.0.0
         with:
           token: ${{ secrets.SENTRY_RELEASE_TOKEN }}
           organization: warpdotdev
@@ -614,7 +614,7 @@ jobs:
 
       - name: Set up Sentry CLI
         if: ${{ needs.prepare_release.outputs.should_publish == 'true' }}
-        uses: matbour/setup-sentry-cli@3e938c54b3018bdd019973689ef984e033b0454b # v2.0.0
+        uses: matbour/setup-sentry-cli@ff4fff773f5e628fa214ebd19e46fb7289454ee2 # v3.0.0
         with:
           token: ${{ secrets.SENTRY_RELEASE_TOKEN }}
           organization: warpdotdev
@@ -765,7 +765,7 @@ jobs:
 
       - name: Set up Sentry CLI
         if: ${{ needs.prepare_release.outputs.should_publish == 'true' }}
-        uses: matbour/setup-sentry-cli@3e938c54b3018bdd019973689ef984e033b0454b # v2.0.0
+        uses: matbour/setup-sentry-cli@ff4fff773f5e628fa214ebd19e46fb7289454ee2 # v3.0.0
         with:
           token: ${{ secrets.SENTRY_RELEASE_TOKEN }}
           organization: warpdotdev
@@ -1023,7 +1023,7 @@ jobs:
       
       - name: Set up Sentry CLI
         if: ${{ needs.prepare_release.outputs.should_publish == 'true' }}
-        uses: matbour/setup-sentry-cli@3e938c54b3018bdd019973689ef984e033b0454b # v2.0.0
+        uses: matbour/setup-sentry-cli@ff4fff773f5e628fa214ebd19e46fb7289454ee2 # v3.0.0
         with:
           token: ${{ secrets.SENTRY_RELEASE_TOKEN }}
           organization: warpdotdev
@@ -1298,7 +1298,7 @@ jobs:
 
       - name: Set up Sentry CLI
         if: ${{ needs.prepare_release.outputs.should_publish == 'true' }}
-        uses: matbour/setup-sentry-cli@3e938c54b3018bdd019973689ef984e033b0454b # v2.0.0
+        uses: matbour/setup-sentry-cli@ff4fff773f5e628fa214ebd19e46fb7289454ee2 # v3.0.0
         with:
           token: ${{ secrets.SENTRY_RELEASE_TOKEN }}
           organization: warpdotdev
@@ -1475,7 +1475,7 @@ jobs:
 
       - name: Set up Sentry CLI
         if: ${{ needs.prepare_release.outputs.should_publish == 'true' }}
-        uses: matbour/setup-sentry-cli@3e938c54b3018bdd019973689ef984e033b0454b # v2.0.0
+        uses: matbour/setup-sentry-cli@ff4fff773f5e628fa214ebd19e46fb7289454ee2 # v3.0.0
         with:
           token: ${{ secrets.SENTRY_RELEASE_TOKEN }}
           organization: warpdotdev

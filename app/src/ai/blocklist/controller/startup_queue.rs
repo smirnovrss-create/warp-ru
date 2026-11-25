@@ -1,8 +1,12 @@
 use std::collections::HashMap;
+use std::future::Future;
+use std::time::Duration;
 
+use futures::future::{Either, select};
 use session_sharing_protocol::common::{AgentAttachment, ParticipantId, ServerConversationToken};
 use warp_core::features::FeatureFlag;
 use warp_errors::report_error;
+use warpui::r#async::Timer;
 use warpui::{ModelContext, SingletonEntity};
 
 use super::BlocklistAIController;
@@ -11,13 +15,30 @@ use super::shared_session::SharedSessionPromptTarget;
 use crate::ai::agent::conversation::AIConversationId;
 use crate::ai::agent::{AIAgentAttachment, BaseUserQuery};
 use crate::ai::attachment_utils::{
-    build_file_attachment_map, download_task_file_attachments, resolve_agent_attachments,
+    DownloadedAttachment, build_file_attachment_map, download_task_file_attachments,
+    resolve_agent_attachments,
 };
 use crate::ai::blocklist::agent_view::AgentViewEntryOrigin;
+use crate::ai::blocklist::orchestration_events::OrchestrationEventService;
 use crate::ai::blocklist::{
     BlocklistAIHistoryModel, QueuedPromptDeliveryMode, QueuedQuery, QueuedQueryId, QueuedQueryModel,
 };
 use crate::server::server_api::ServerApiProvider;
+
+pub(super) const ATTACHMENT_PREPARATION_TIMEOUT: Duration = Duration::from_secs(30);
+
+pub(super) async fn await_attachment_preparation(
+    downloads: impl Future<Output = Vec<DownloadedAttachment>>,
+    deadline: impl Future,
+) -> Vec<DownloadedAttachment> {
+    match select(Box::pin(downloads), Box::pin(deadline)).await {
+        Either::Left((downloaded, _)) => downloaded,
+        Either::Right(_) => {
+            log::warn!("Queued follow-up attachment preparation timed out");
+            Vec::new()
+        }
+    }
+}
 
 impl BlocklistAIController {
     /// Binds this controller to a native conversation before session sharing can begin
@@ -62,18 +83,31 @@ impl BlocklistAIController {
     /// behind an active CLI subagent could go out) and releasing the native setup barrier if it
     /// was still held -- otherwise this conversation would stay permanently dispatch-blocked for
     /// any future local queueing against it, since nothing else would ever release that barrier.
+    ///
+    /// For a conversation whose turns an external harness authored, any orchestration events
+    /// still held behind that barrier are dropped first: releasing the barrier re-checks them,
+    /// and injecting them would open a native request the server cannot serve.
     #[cfg_attr(target_family = "wasm", allow(dead_code))]
     pub(crate) fn unbind_native_prompt_conversation(&mut self, ctx: &mut ModelContext<Self>) {
         let Some(id) = self.native_prompt_conversation_id.take() else {
             return;
         };
         self.external_harness_prompt_sink = None;
+        self.external_harness_cancel_sink = None;
         let unsent_count = QueuedQueryModel::as_ref(ctx).queue(id).len();
         log::info!(
             "event=native_queue_stopped task_id={:?} terminal_id={:?} conversation_id={id} unsent_count={unsent_count}",
             self.ambient_agent_task_id,
             self.terminal_surface_id,
         );
+        let owns_turn_lifecycle = BlocklistAIHistoryModel::as_ref(ctx)
+            .conversation(&id)
+            .is_none_or(|conversation| conversation.driver().owns_turn_lifecycle());
+        if !owns_turn_lifecycle {
+            OrchestrationEventService::handle(ctx).update(ctx, |service, _| {
+                service.drop_pending_events_for_external_harness_conversation(id);
+            });
+        }
         QueuedQueryModel::handle(ctx).update(ctx, |queue, ctx| {
             queue.clear_queue(id, ctx);
             queue.finish_native_setup(id, ctx);
@@ -124,10 +158,12 @@ impl BlocklistAIController {
                 self.terminal_surface_id,
                 attachments.len(),
             );
-            let relayed = ExternalHarnessPrompt {
-                text: prompt.to_owned(),
-                attachments: attachments.to_vec(),
-            };
+            let relayed = ExternalHarnessPrompt::new(
+                prompt.to_owned(),
+                attachments.to_vec(),
+                participant_id.clone(),
+                base.cloned(),
+            );
             if sink.try_send(relayed).is_err() {
                 report_error!(
                     "Dropped a shared-session prompt because the external harness is no longer accepting prompts",
@@ -172,9 +208,7 @@ impl BlocklistAIController {
         if needs_preparation {
             self.prepare_queued_attachments(id, query_id, attachments.to_vec(), ctx);
         }
-        if self.can_dispatch_queued_warp_agent_prompt(id, ctx) {
-            self.dispatch_queued_warp_agent_prompt(id, None, ctx);
-        }
+        self.dispatch_queued_warp_agent_prompt(id, None, ctx);
         true
     }
 
@@ -185,6 +219,12 @@ impl BlocklistAIController {
         query_id: Option<QueuedQueryId>,
         ctx: &mut ModelContext<Self>,
     ) {
+        if self.rejects_shared_session_prompts(ctx) {
+            return;
+        }
+        if query_id.is_none() && !self.can_dispatch_queued_warp_agent_prompt(conversation_id, ctx) {
+            return;
+        }
         let has_active_subagent = BlocklistAIHistoryModel::as_ref(ctx)
             .conversation(&conversation_id)
             .is_some_and(|conversation| conversation.has_active_subagent());
@@ -212,9 +252,6 @@ impl BlocklistAIController {
         );
         if row.shared_session_prompt().is_some() {
             self.send_native_startup_injection(conversation_id, row, ctx);
-            QueuedQueryModel::handle(ctx).update(ctx, |queue, ctx| {
-                queue.remove_fired_row(conversation_id, row_id, ctx);
-            });
         } else {
             // The send path resolves this row's attachments by id, so it must still be in the
             // queue when this is called; remove it only afterward.
@@ -225,10 +262,10 @@ impl BlocklistAIController {
                 row_id,
                 ctx,
             );
-            QueuedQueryModel::handle(ctx).update(ctx, |queue, ctx| {
-                queue.remove_fired_row(conversation_id, row_id, ctx);
-            });
         }
+        QueuedQueryModel::handle(ctx).update(ctx, |queue, ctx| {
+            queue.remove_fired_row(conversation_id, row_id, ctx);
+        });
     }
 
     /// Sends a prepared shared-session prompt with its attributed context.
@@ -304,12 +341,15 @@ impl BlocklistAIController {
         let ai_client = ServerApiProvider::as_ref(ctx).get_ai_client();
         let http_client = ServerApiProvider::as_ref(ctx).get_http_client();
         ctx.spawn(
-            download_task_file_attachments(
-                ai_client,
-                http_client,
-                task_id,
-                directory,
-                file_downloads,
+            await_attachment_preparation(
+                download_task_file_attachments(
+                    ai_client,
+                    http_client,
+                    task_id,
+                    directory,
+                    file_downloads,
+                ),
+                Timer::after(ATTACHMENT_PREPARATION_TIMEOUT),
             ),
             move |_, downloaded, ctx| {
                 QueuedQueryModel::handle(ctx).update(ctx, |queue, ctx| {

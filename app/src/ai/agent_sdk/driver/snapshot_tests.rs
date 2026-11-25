@@ -8,6 +8,7 @@ use command::blocking::Command as BlockingCommand;
 use mockito::{Matcher, Server, ServerGuard};
 use tempfile::{Builder as TempDirBuilder, TempDir};
 use tokio::runtime::Runtime;
+use warp_cli::agent::Harness;
 
 use super::*;
 use crate::ai::agent::api::ServerConversationToken;
@@ -16,7 +17,7 @@ use crate::ai::agent_sdk::test_support::build_test_http_client;
 use crate::ai::artifacts::Artifact;
 use crate::server::server_api::harness_support::{
     CommitSnapshotResponse, ReportArtifactResponse, ResolvePromptRequest, ResolvedHarnessPrompt,
-    SnapshotUploadMode,
+    SnapshotUploadMode, WaitForEventsResponse,
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -118,7 +119,23 @@ impl TestClient {
 
 #[async_trait]
 impl HarnessSupportClient for TestClient {
-    async fn create_external_conversation(&self, _format: &str) -> Result<ServerConversationToken> {
+    async fn wait_for_events(&self, _run_ids: &[String]) -> Result<WaitForEventsResponse> {
+        unimplemented!("not used by upload_snapshot_from_declarations_file")
+    }
+
+    async fn create_external_conversation(
+        &self,
+        _format: &str,
+        _harness: Harness,
+    ) -> Result<ServerConversationToken> {
+        unimplemented!("not used by upload_snapshot_from_declarations_file")
+    }
+
+    async fn upload_conversation_data(
+        &self,
+        _conversation_id: &ServerConversationToken,
+        _conversation_data: &[u8],
+    ) -> Result<()> {
         unimplemented!("not used by upload_snapshot_from_declarations_file")
     }
 
@@ -157,6 +174,14 @@ impl HarnessSupportClient for TestClient {
 
     async fn finish_task(&self, _success: bool, _summary: &str) -> Result<()> {
         unimplemented!("not used by upload_snapshot_from_declarations_file")
+    }
+
+    async fn report_transport(
+        &self,
+        _transport: warp_cli::agent::HarnessTransport,
+        _fallback_reason: Option<&'static str>,
+    ) -> Result<()> {
+        Ok(())
     }
 
     async fn report_clean_shutdown(&self) -> Result<()> {
@@ -222,7 +247,7 @@ impl HarnessSupportClient for TestClient {
         })
     }
 
-    fn http_client(&self) -> &http_client::Client {
+    fn external_http_client(&self) -> &http_client::Client {
         &self.http
     }
 }
@@ -1329,9 +1354,58 @@ fn parsed_file_paths(path: &Path) -> Vec<String> {
         .collect()
 }
 
+fn declarations_writer_tempdir() -> TempDir {
+    // Writer fixtures must be outside the system temp directory to exercise file declarations.
+    TempDirBuilder::new()
+        .prefix("snaptest")
+        .tempdir_in(dirs::home_dir().unwrap())
+        .unwrap()
+}
+
+#[test]
+fn declarations_writer_skips_temp_paths() {
+    let tempdir = snaptest_tempdir();
+    let workspace = declarations_writer_tempdir();
+    let scratch = tempdir.path().join("probe.txt");
+    fs::write(&scratch, "scratch").unwrap();
+    let scratch_alias = workspace.path().join("scratch");
+    std::os::unix::fs::symlink(tempdir.path(), &scratch_alias).unwrap();
+    let outside = workspace.path().join("notes.txt");
+    fs::write(&outside, "keep").unwrap();
+    let decl_path = tempdir.path().join("declarations.jsonl");
+
+    Runtime::new().unwrap().block_on(async {
+        let handle = DeclarationsWriterHandle::new_at_path(
+            decl_path.clone(),
+            workspace.path().to_path_buf(),
+            fake_task_id(),
+        );
+        handle.append(vec![
+            scratch.to_string_lossy().into_owned(),
+            scratch
+                .canonicalize()
+                .unwrap()
+                .to_string_lossy()
+                .into_owned(),
+            scratch_alias
+                .join("probe.txt")
+                .to_string_lossy()
+                .into_owned(),
+            "/tmp/oz/snapshot-test/snapshot-declarations.jsonl".to_string(),
+            outside.to_string_lossy().into_owned(),
+        ]);
+        handle.flush().await;
+    });
+
+    assert_eq!(
+        parsed_file_paths(&decl_path),
+        vec![outside.to_string_lossy().into_owned()]
+    );
+}
+
 #[test]
 fn declarations_writer_appends_unique_absolute_paths_once() {
-    let tempdir = snaptest_tempdir();
+    let tempdir = declarations_writer_tempdir();
     let workspace = tempdir.path().join("workspace");
     fs::create_dir_all(&workspace).unwrap();
     let decl_path = tempdir.path().join("declarations.jsonl");
@@ -1367,7 +1441,7 @@ fn declarations_writer_appends_unique_absolute_paths_once() {
 
 #[test]
 fn declarations_writer_resolves_relative_paths_against_working_dir() {
-    let tempdir = snaptest_tempdir();
+    let tempdir = declarations_writer_tempdir();
     let workspace = tempdir.path().join("workspace");
     fs::create_dir_all(&workspace).unwrap();
     let decl_path = tempdir.path().join("declarations.jsonl");
@@ -1398,7 +1472,7 @@ fn declarations_writer_continues_after_per_path_write_failures() {
     // Pre-create a directory at the declarations file path so the first append's open call
     // fails. Once we remove the directory, a subsequent append must succeed, proving the
     // writer task absorbed the failure and kept servicing commands.
-    let tempdir = snaptest_tempdir();
+    let tempdir = declarations_writer_tempdir();
     let workspace = tempdir.path().join("workspace");
     fs::create_dir_all(&workspace).unwrap();
     let decl_path = tempdir.path().join("declarations.jsonl");
@@ -1431,7 +1505,7 @@ fn declarations_writer_continues_after_per_path_write_failures() {
 
 #[test]
 fn declarations_writer_preempts_paths_inside_existing_repo() {
-    let tempdir = snaptest_tempdir();
+    let tempdir = declarations_writer_tempdir();
     // Simulate an existing repo by creating the `.git` directory the ancestor walker checks.
     let repo = tempdir.path().join("existing-repo");
     fs::create_dir_all(repo.join(".git")).unwrap();

@@ -863,6 +863,7 @@ pub(super) fn render(props: Props, app: &AppContext) -> Box<dyn Element> {
                                     addresses,
                                     subject,
                                     message,
+                                    ..
                                 },
                             id,
                             ..
@@ -1312,6 +1313,9 @@ fn dispatch_chatgpt_subscription_action(
             ctx.dispatch_typed_action(AIBlockAction::ContinueWithWarpCredits)
         }
         ChatGPTSubscriptionErrorActionKind::OpenUrl { url } => app.open_url(url),
+        ChatGPTSubscriptionErrorActionKind::CopyText { text } => {
+            ctx.dispatch_typed_action(AIBlockAction::CopyText(text.clone()))
+        }
     }
 }
 

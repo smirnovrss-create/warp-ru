@@ -4315,7 +4315,7 @@ fn terminal_primary_line_data(
     }
 
     TerminalPrimaryLineData::Text {
-        text: "New session".to_string(),
+        text: warp_i18n::t!("terminal-new-session"),
         font: TerminalPrimaryLineFont::Ui,
     }
 }

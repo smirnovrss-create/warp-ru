@@ -360,7 +360,7 @@ impl MessageProvider<TerminalMessageArgs<'_>> for DefaultMessageProducer {
         if let Some(keystroke) = keystroke {
             let promotion_message = PricingPromotionState::as_ref(args.app)
                 .visible_message(PricingPromotionSurface::TerminalMessageBar, args.app);
-            let mut text = " new /agent conversation".to_string();
+            let mut text = format!(" {}", warp_i18n::t!("terminal-bar-new-agent-conversation"));
             if let Some(promotion_message) = &promotion_message {
                 text.push_str(" · ");
                 text.push_str(promotion_message);
@@ -381,7 +381,7 @@ impl MessageProvider<TerminalMessageArgs<'_>> for DefaultMessageProducer {
             Some(Message::new(items))
         } else {
             Some(Message::new(vec![MessageItem::text(
-                "/agent for new conversation",
+                warp_i18n::t!("terminal-bar-agent-for-new-conversation"),
             )]))
         }
     }

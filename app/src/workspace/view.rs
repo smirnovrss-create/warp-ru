@@ -21205,7 +21205,7 @@ impl Workspace {
                         Shrinkable::new(
                             1.,
                             Text::new_inline(
-                                "Search sessions, agents, files...",
+                                warp_i18n::t!("workspace-search-placeholder"),
                                 appearance.ui_font_family(),
                                 14.,
                             )

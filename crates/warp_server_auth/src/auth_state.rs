@@ -111,6 +111,15 @@ impl AuthState {
         }
     }
 
+    fn local_oss_user() -> User {
+        let mut user = User::test();
+        #[cfg(not(test))]
+        {
+            user.metadata.display_name = Some("RSSmirnov".to_string());
+        }
+        user
+    }
+
     /// Creates and initializes auth state. Checks, in order:
     /// 1. Test user (test/integration/skip_login builds)
     /// 2. WARP_USER_SECRET environment variable
@@ -120,7 +129,7 @@ impl AuthState {
         let state = Self::new(ctx);
 
         if Self::should_use_test_user() {
-            state.set_user(Some(User::test()));
+            state.set_user(Some(Self::local_oss_user()));
             #[cfg(any(
                 test,
                 feature = "integration_tests",
@@ -173,7 +182,7 @@ impl AuthState {
         let state = Self::new(ctx);
 
         if Self::should_use_test_user() {
-            state.set_user(Some(User::test()));
+            state.set_user(Some(Self::local_oss_user()));
             #[cfg(any(
                 test,
                 feature = "integration_tests",

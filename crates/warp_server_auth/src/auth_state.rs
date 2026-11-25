@@ -111,13 +111,37 @@ impl AuthState {
         }
     }
 
+    #[cfg(all(not(test), not(target_family = "wasm")))]
+    fn resolve_local_oss_display_name() -> Option<String> {
+        std::env::var("WARP_OSS_DISPLAY_NAME")
+            .ok()
+            .and_then(|value| {
+                let trimmed = value.trim();
+                (!trimmed.is_empty()).then(|| trimmed.to_string())
+            })
+            .or_else(|| {
+                let path = warp_core::paths::config_local_dir().join("display_name");
+                std::fs::read_to_string(path).ok().and_then(|content| {
+                    content
+                        .lines()
+                        .map(str::trim)
+                        .find(|line| !line.is_empty())
+                        .map(str::to_string)
+                })
+            })
+    }
+
     fn local_oss_user() -> User {
-        let mut user = User::test();
-        #[cfg(not(test))]
+        #[cfg(all(not(test), not(target_family = "wasm")))]
         {
-            user.metadata.display_name = Some("RSSmirnov".to_string());
+            let mut user = User::test();
+            user.metadata.display_name = Self::resolve_local_oss_display_name();
+            user
         }
-        user
+        #[cfg(any(test, target_family = "wasm"))]
+        {
+            User::test()
+        }
     }
 
     /// Creates and initializes auth state. Checks, in order:

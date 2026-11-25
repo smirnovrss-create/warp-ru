@@ -95,7 +95,7 @@ pub fn anthropic_input_to_actions(input: &Value) -> Result<DecodedAnthropicCompu
             Ok(DecodedAnthropicComputerUse {
                 actions: vec![Action::MouseDown {
                     button: MouseButton::Left,
-                    at,
+                    at: Some(at),
                 }],
                 screenshot: None,
             })
@@ -122,12 +122,12 @@ pub fn anthropic_input_to_actions(input: &Value) -> Result<DecodedAnthropicCompu
                 actions.push(Action::MouseMove { to: start });
                 actions.push(Action::MouseDown {
                     button: MouseButton::Left,
-                    at: start,
+                    at: Some(start),
                 });
             } else {
                 actions.push(Action::MouseDown {
                     button: MouseButton::Left,
-                    at: end,
+                    at: Some(end),
                 });
             }
             actions.push(Action::MouseMove { to: end });
@@ -236,7 +236,7 @@ fn click_at(button: MouseButton, at: Vector2I) -> Vec<Action> {
     vec![
         Action::MouseDown {
             button: button.clone(),
-            at,
+            at: Some(at),
         },
         Action::MouseUp { button },
     ]
@@ -325,6 +325,7 @@ mod tests {
         match &decoded.actions[0] {
             Action::MouseDown { button, at } => {
                 assert!(matches!(button, MouseButton::Left));
+                let at = at.expect("left_click should set mouse down coordinate");
                 assert_eq!(at.x(), 120);
                 assert_eq!(at.y(), 240);
             }
